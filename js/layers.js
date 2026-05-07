@@ -14,6 +14,9 @@
     button: '▶',
     input: '✎',
     scrollview: '↕',
+    slider: '—',
+    icon: '◎',
+    switch: '◑',
   };
 
   function renderTree() {
@@ -43,6 +46,7 @@
     item.addEventListener('click', function(e) {
       e.stopPropagation();
       state.selectedId = elData.id;
+      emit('stateChange');
       emit('selectionChange');
     });
 
@@ -59,7 +63,11 @@
   }
 
   function formatLabel(el) {
-    var name = el.type.charAt(0).toUpperCase() + el.type.slice(1);
+    var defaultName = el.type === 'scrollview' ? 'ScrollView'
+      : el.type.charAt(0).toUpperCase() + el.type.slice(1);
+    if (el.name && el.name !== defaultName) return el.name;
+
+    var name = defaultName;
     if (el.type === 'text' || el.type === 'button') {
       var t = (el.text || '').trim();
       if (t) name += ' "' + (t.length > 12 ? t.slice(0, 12) + '…' : t) + '"';
@@ -67,9 +75,23 @@
     if (el.type === 'input' && el.placeholder) {
       name += ' "' + el.placeholder + '"';
     }
+    if (el.type === 'icon' && el.iconName) {
+      name += ' "' + el.iconName + '"';
+    }
     return name;
   }
 
+  function updateSelectionInTree() {
+    var items = treeEl.querySelectorAll('.layer-item');
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].dataset.id === state.selectedId) {
+        items[i].classList.add('selected');
+      } else {
+        items[i].classList.remove('selected');
+      }
+    }
+  }
+
   on('stateChange', renderTree);
-  on('selectionChange', renderTree);
+  on('selectionChange', updateSelectionInTree);
 })();

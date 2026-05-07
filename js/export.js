@@ -61,11 +61,14 @@
     var indent = '';
     for (var i = 0; i < depth; i++) indent += '  ';
 
-    var type = el.type.charAt(0).toUpperCase() + el.type.slice(1);
+    var type = el.type === 'scrollview' ? 'ScrollView'
+      : el.type.charAt(0).toUpperCase() + el.type.slice(1);
+    var displayName = (el.name && el.name !== type) ? el.name + ' [' + type + ']' : type;
+
     var attrs = [];
     attrs.push('x:' + el.x + ', y:' + el.y + ', w:' + el.w + ', h:' + el.h);
 
-    if (el.type !== 'text') attrs.push('bg:' + el.bg);
+    if (el.bg && el.bg !== 'transparent') attrs.push('bg:' + el.bg);
     if (el.radius) attrs.push('radius:' + el.radius);
     if (el.opacity !== undefined && el.opacity !== 1) attrs.push('opacity:' + el.opacity);
 
@@ -77,9 +80,22 @@
     }
 
     if (el.type === 'image' && el.src) attrs.push('src:"' + el.src + '"');
+    if (el.type === 'scrollview' && el.scrollDirection) attrs.push('scroll:' + el.scrollDirection);
+    if (el.type === 'slider') {
+      attrs.push('value:' + (el.value !== undefined ? el.value : 50));
+      attrs.push('min:' + (el.min !== undefined ? el.min : 0));
+      attrs.push('max:' + (el.max !== undefined ? el.max : 100));
+      if (el.fillColor) attrs.push('fill:' + el.fillColor);
+    }
+    if (el.type === 'icon' && el.iconName) attrs.push('iconName:' + el.iconName);
+    if (el.type === 'switch') {
+      attrs.push('checked:' + !!el.checked);
+      if (el.onColor) attrs.push('onColor:' + el.onColor);
+      if (el.offColor) attrs.push('offColor:' + el.offColor);
+    }
 
     var textContent = (el.type === 'text' || el.type === 'button') ? ' "' + (el.text || '') + '"' : '';
-    lines.push(indent + type + textContent + ' (' + attrs.join(', ') + ')');
+    lines.push(indent + displayName + textContent + ' (' + attrs.join(', ') + ')');
 
     if (el.children) {
       for (var c = 0; c < el.children.length; c++) {

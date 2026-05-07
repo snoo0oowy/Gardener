@@ -7,17 +7,32 @@ function generateId() {
   return `el_${_nextId++}`;
 }
 
+var _morandiPalette = [
+  '#e8dede', '#dce6da', '#d8e2ea', '#ede4d8', '#e4dff0',
+  '#d8e8e6', '#ece8e0', '#eedad8', '#e0e8d4', '#e4dce8',
+  '#eaddd8', '#d8eae4', '#dce4ec', '#ece0d8', '#e0daea',
+  '#e6e8dc', '#ecdce8', '#d8e4e0', '#eee8d8', '#dcdce8',
+];
+
+function randomMorandiColor() {
+  return _morandiPalette[Math.floor(Math.random() * _morandiPalette.length)];
+}
+
 function createDefaultElement(type, x, y) {
   x = x || 0;
   y = y || 0;
+  var defaultName = type === 'scrollview' ? 'ScrollView'
+    : type.charAt(0).toUpperCase() + type.slice(1);
+
   var base = {
     id: generateId(),
     type: type,
+    name: defaultName,
     x: Math.round(x),
     y: Math.round(y),
-    w: type === 'button' ? 120 : type === 'input' ? 200 : type === 'text' ? 150 : 200,
-    h: type === 'button' ? 44 : type === 'input' ? 40 : type === 'text' ? 30 : 100,
-    bg: type === 'button' ? '#007AFF' : type === 'view' ? '#f0f0f5' : type === 'image' ? '#e8e8ec' : '#ffffff',
+    w: type === 'slider' ? 200 : type === 'icon' ? 40 : type === 'switch' ? 50 : type === 'button' ? 120 : type === 'input' ? 200 : type === 'text' ? 150 : 200,
+    h: type === 'slider' ? 36 : type === 'icon' ? 40 : type === 'switch' ? 28 : type === 'button' ? 44 : type === 'input' ? 40 : type === 'text' ? 30 : 100,
+    bg: type === 'slider' ? 'transparent' : type === 'switch' ? 'transparent' : type === 'button' ? '#4a90c4' : type === 'view' ? randomMorandiColor() : type === 'image' ? '#e8e8ec' : type === 'icon' ? randomMorandiColor() : type === 'text' ? 'transparent' : '#ffffff',
     radius: type === 'button' ? 8 : type === 'input' ? 6 : 0,
     shadow: '',
     opacity: 1,
@@ -28,7 +43,7 @@ function createDefaultElement(type, x, y) {
     base.text = type === 'button' ? 'Button' : 'Text';
     base.fontSize = type === 'button' ? 16 : 14;
     base.fontWeight = type === 'button' ? 'bold' : 'normal';
-    base.color = type === 'button' ? '#ffffff' : '#000000';
+    base.color = type === 'button' ? '#f0f4f8' : '#000000';
     base.textAlign = type === 'button' ? 'center' : 'left';
   }
 
@@ -47,7 +62,28 @@ function createDefaultElement(type, x, y) {
   }
 
   if (type === 'scrollview') {
-    base.bg = '#f5f5f5';
+    base.bg = randomMorandiColor();
+    base.scrollDirection = 'vertical';
+  }
+
+  if (type === 'slider') {
+    base.min = 0;
+    base.max = 100;
+    base.value = 50;
+    base.fillColor = '#4a90c4';
+    base.thumbColor = '#4a90c4';
+    base.trackColor = '#d0d0d0';
+  }
+
+  if (type === 'icon') {
+    base.iconName = 'icon';
+    base.color = '#555555';
+  }
+
+  if (type === 'switch') {
+    base.checked = false;
+    base.onColor = '#4a90c4';
+    base.offColor = '#d0d0d0';
   }
 
   return base;
@@ -59,7 +95,7 @@ function deepClone(obj) {
 
 // State
 var state = {
-  canvas: { width: 390, height: 844 },
+  canvas: { width: 393, height: 852 },
   elements: [],
   selectedId: null,
 };
@@ -118,6 +154,7 @@ function removeElement(id, list) {
   return false;
 }
 
+window.Gardener.randomMorandiColor = randomMorandiColor;
 window.Gardener.state = state;
 window.Gardener.generateId = generateId;
 window.Gardener.createDefaultElement = createDefaultElement;

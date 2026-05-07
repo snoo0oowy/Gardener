@@ -10,6 +10,7 @@
   var snapPosition = G.snapPosition;
   var hideGuides = G.hideGuides;
 
+  var canvasEl = document.getElementById('canvas');
   var dragState = null;
   var lastDropTarget = null;
 
@@ -117,8 +118,10 @@
     // 2) Resize handle — skip, handled by select.js
     if (e.target.closest('.resize-handle')) return;
 
+    // 3a) Slider thumb — skip entirely, handled by slider.js
+    if (e.target.closest('.slider-thumb')) return;
+
     // 3) Canvas element — start move
-    var canvasEl = document.getElementById('canvas');
     var elNode = e.target.closest('.canvas-element');
     if (elNode && canvasEl && canvasEl.contains(elNode)) {
       var id = elNode.dataset.id;
@@ -139,9 +142,11 @@
       return;
     }
 
-    // 4) Click on empty area — deselect
-    if (!e.target.closest('.canvas-element')) {
+    // 4) Click on canvas background (inside or outside the white box) — deselect
+    var canvasArea = document.getElementById('canvas-area');
+    if (canvasArea && canvasArea.contains(e.target) && !e.target.closest('.canvas-element')) {
       state.selectedId = null;
+      emit('stateChange');
       emit('selectionChange');
     }
   }
@@ -153,7 +158,6 @@
       dragState.ghost.style.left = (e.clientX - 30) + 'px';
       dragState.ghost.style.top = (e.clientY - 15) + 'px';
 
-      var canvasEl = document.getElementById('canvas');
       var rect = canvasEl.getBoundingClientRect();
       var cx = e.clientX - rect.left;
       var cy = e.clientY - rect.top;
@@ -181,8 +185,7 @@
       }
       emit('stateChange');
 
-      var canvasEl2 = document.getElementById('canvas');
-      var rect2 = canvasEl2.getBoundingClientRect();
+      var rect2 = canvasEl.getBoundingClientRect();
       var centerX = e.clientX - rect2.left;
       var centerY = e.clientY - rect2.top;
       var dropTarget = findContainerAtPoint(centerX, centerY, dragState.id);
@@ -197,7 +200,6 @@
 
     if (dragState.mode === 'palette') {
       dragState.ghost.remove();
-      var canvasEl = document.getElementById('canvas');
       var rect = canvasEl.getBoundingClientRect();
       var onCanvas = e.clientX >= rect.left && e.clientX <= rect.right &&
                      e.clientY >= rect.top && e.clientY <= rect.bottom;

@@ -38,10 +38,37 @@ body {
 
 /* Left Panel */
 #left-panel {
-  width: 200px;
-  min-width: 200px;
+  width: 380px;
+  min-width: 380px;
   background: var(--panel-bg);
   border-right: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: row;
+}
+
+#left-col-layers {
+  width: 180px;
+  min-width: 180px;
+  border-right: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+#left-col-layers .panel-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#left-col-layers #layer-tree {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#left-col-elements {
+  width: 200px;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -232,14 +259,47 @@ body {
   outline-offset: 2px;
 }
 
-.canvas-element .resize-handle {
+#handles-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 100;
+}
+
+#device-chrome {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 150;
+}
+
+.dynamic-island {
+  position: absolute;
+  background: #000;
+  pointer-events: none;
+}
+
+.handles-group {
+  position: absolute;
+  pointer-events: none;
+}
+
+.resize-handle {
   position: absolute;
   width: 8px;
   height: 8px;
   background: var(--handle);
   border: 1px solid #fff;
   border-radius: 1px;
-  z-index: 10;
+  pointer-events: all;
 }
 
 .resize-handle.tl { top: -4px; left: -4px; cursor: nw-resize; }
@@ -395,6 +455,27 @@ body {
   cursor: pointer;
 }
 
+.prop-field input[type="color"]:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prop-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
+}
+
+.prop-checkbox-label input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* Toast notification */
 .toast {
   position: fixed;
@@ -530,7 +611,26 @@ body {
 }
 
 .canvas-element[data-type="scrollview"] {
-  overflow-y: auto;
+  overflow: visible;
+}
+
+.scroll-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scrollview-label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+  pointer-events: none;
+  user-select: none;
 }
 
 .canvas-element[data-type="image"] {
@@ -550,4 +650,52 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.slider-track-bg {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  border-radius: 1px;
+}
+
+.slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 1px;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.canvas-element.selected .slider-thumb {
+  cursor: ew-resize;
+}
+
+.switch-thumb {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.icon-label {
+  font-size: 11px;
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.7;
 }
