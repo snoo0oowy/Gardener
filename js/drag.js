@@ -4,7 +4,10 @@
   var state = G.state;
   var createDefaultElement = G.createDefaultElement;
   var getElementById = G.getElementById;
+  var findParent = G.findParent;
   var removeElement = G.removeElement;
+  var getElementBounds = G.getElementBounds;
+  var getAbsolutePosition = G.getAbsolutePosition;
   var emit = G.emit;
   var saveState = G.saveState;
   var snapPosition = G.snapPosition;
@@ -16,18 +19,6 @@
 
   function isContainerType(type) {
     return type === 'view' || type === 'scrollview';
-  }
-
-  function getAbsolutePosition(id, list) {
-    list = list || state.elements;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].id === id) return { x: list[i].x, y: list[i].y };
-      if (list[i].children) {
-        var found = getAbsolutePosition(id, list[i].children);
-        if (found) return { x: list[i].x + found.x, y: list[i].y + found.y };
-      }
-    }
-    return null;
   }
 
   function isDescendant(childId, parentId) {
@@ -82,76 +73,64 @@
     }
   }
 
-  function initDrag() {
-    document.addEventListener('mousedown', onPointerDown, true);
-    document.addEventListener('mousemove', onPointerMove, true);
-    document.addEventListener('mouseup', onPointerUp, true);
+  // --- Handlers called by unified dispatcher in app.js ---
+
+  function paletteStart(e) {
+    var paletteItem = e.target.closest('.palette-item');
+    if (!paletteItem) return false;
+
+    e.preventDefault();
+    var type = paletteItem.dataset.type;
+    var ghost = document.createElement('div');
+    ghost.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+    ghost.style.position = 'fixed';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '100000';
+    ghost.style.padding = '6px 14px';
+    ghost.style.background = 'rgba(137, 180, 250, 0.9)';
+    ghost.style.color = '#111';
+    ghost.style.borderRadius = '6px';
+    ghost.style.fontSize = '12px';
+    ghost.style.fontWeight = '600';
+    ghost.style.fontFamily = 'inherit';
+    ghost.style.left = (e.clientX - 30) + 'px';
+    ghost.style.top = (e.clientY - 15) + 'px';
+    document.body.appendChild(ghost);
+    dragState = { mode: 'palette', type: type, ghost: ghost };
+    return true;
   }
 
-  function onPointerDown(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-
-    // 1) Palette item
-    var paletteItem = e.target.closest('.palette-item');
-    if (paletteItem) {
-      e.preventDefault();
-      var type = paletteItem.dataset.type;
-      var ghost = document.createElement('div');
-      ghost.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-      ghost.style.position = 'fixed';
-      ghost.style.pointerEvents = 'none';
-      ghost.style.zIndex = '100000';
-      ghost.style.padding = '6px 14px';
-      ghost.style.background = 'rgba(137, 180, 250, 0.9)';
-      ghost.style.color = '#111';
-      ghost.style.borderRadius = '6px';
-      ghost.style.fontSize = '12px';
-      ghost.style.fontWeight = '600';
-      ghost.style.fontFamily = 'inherit';
-      ghost.style.left = (e.clientX - 30) + 'px';
-      ghost.style.top = (e.clientY - 15) + 'px';
-      document.body.appendChild(ghost);
-      dragState = { mode: 'palette', type: type, ghost: ghost };
-      return;
-    }
-
-    // 2) Resize handle — skip, handled by select.js
-    if (e.target.closest('.resize-handle')) return;
-
-    // 3a) Slider thumb — skip entirely, handled by slider.js
-    if (e.target.closest('.slider-thumb')) return;
-
-    // 3) Canvas element — start move
+  function elementStart(e) {
     var elNode = e.target.closest('.canvas-element');
-    if (elNode && canvasEl && canvasEl.contains(elNode)) {
-      var id = elNode.dataset.id;
-      var el = getElementById(id);
-      if (el) {
-        state.selectedId = id;
-        emit('selectionChange');
-        dragState = {
-          mode: 'element',
-          id: id,
-          startX: e.clientX,
-          startY: e.clientY,
-          elStartX: el.x,
-          elStartY: el.y,
-        };
-        e.preventDefault();
-      }
-      return;
-    }
+    if (!elNode || !canvasEl || !canvasEl.contains(elNode)) return false;
 
-    // 4) Click on canvas background (inside or outside the white box) — deselect
+    var id = elNode.dataset.id;
+    var el = getElementById(id);
+    if (!el) return false;
+
+    state.selectedId = id;
+    emit('selectionChange');
+    dragState = {
+      mode: 'element',
+      id: id,
+      startX: e.clientX,
+      startY: e.clientY,
+      elStartX: el.x,
+      elStartY: el.y,
+    };
+    e.preventDefault();
+    return true;
+  }
+
+  function deselect(e) {
     var canvasArea = document.getElementById('canvas-area');
     if (canvasArea && canvasArea.contains(e.target) && !e.target.closest('.canvas-element')) {
       state.selectedId = null;
-      emit('stateChange');
       emit('selectionChange');
     }
   }
 
-  function onPointerMove(e) {
+  function pointerMove(e) {
     if (!dragState) return;
 
     if (dragState.mode === 'palette') {
@@ -174,16 +153,24 @@
       var newX = dragState.elStartX + dx;
       var newY = dragState.elStartY + dy;
 
-      var hasParent = G.findParent(dragState.id);
-      if (!hasParent) {
-        var snapped = snapPosition(dragState.id, newX, newY, el.w, el.h);
+      var parentBounds = getElementBounds(dragState.id);
+      if (parentBounds) {
+        var snapped = snapPosition(dragState.id, newX, newY, el.w, el.h, parentBounds);
         el.x = snapped.x;
         el.y = snapped.y;
       } else {
-        el.x = Math.round(newX);
-        el.y = Math.round(newY);
+        var snappedFree = snapPosition(dragState.id, newX, newY, el.w, el.h);
+        el.x = snappedFree.x;
+        el.y = snappedFree.y;
       }
-      emit('stateChange');
+
+      // Direct DOM update instead of full re-render
+      var node = canvasEl.querySelector('[data-id="' + dragState.id + '"]');
+      if (node) {
+        node.style.left = el.x + 'px';
+        node.style.top = el.y + 'px';
+      }
+      emit('selectionChange');
 
       var rect2 = canvasEl.getBoundingClientRect();
       var centerX = e.clientX - rect2.left;
@@ -193,7 +180,7 @@
     }
   }
 
-  function onPointerUp(e) {
+  function pointerUp(e) {
     if (!dragState) return;
 
     clearDropHighlight();
@@ -220,7 +207,7 @@
 
         saveState();
         state.selectedId = newEl.id;
-        emit('stateChange');
+        emit('canvasChange');
         emit('selectionChange');
       }
       dragState = null;
@@ -235,12 +222,13 @@
         var centerY = absPos2 ? absPos2.y + el.h / 2 : el.y;
         var container2 = findContainerAtPoint(centerX, centerY, dragState.id);
 
-        var currentParent = G.findParent(dragState.id);
+        var currentParent = findParent(dragState.id);
 
         if (container2 && currentParent && container2.id === currentParent.id) {
-          // Staying in the same parent — no reparent needed
+          // Staying in the same parent
         } else if (container2 && container2.id !== dragState.id) {
           // Reparent into new container
+          saveState();
           var removed = removeElement(dragState.id);
           if (removed) {
             var containerAbs = getAbsolutePosition(container2.id);
@@ -251,22 +239,32 @@
             container2.children.push(el);
           }
         } else if (currentParent && !container2) {
-          // Dragged out of container → move to top level
+          // Dragged out of container
+          saveState();
           var elAbsX2 = absPos2 ? absPos2.x : el.x;
           var elAbsY2 = absPos2 ? absPos2.y : el.y;
           removeElement(dragState.id);
           el.x = elAbsX2;
           el.y = elAbsY2;
           state.elements.push(el);
+        } else {
+          saveState();
         }
       }
 
       dragState = null;
       hideGuides();
-      saveState();
-      emit('stateChange');
+      emit('canvasChange');
     }
   }
 
-  G.initDrag = initDrag;
+  G.initDrag = function() {
+    // Drag handlers are called by the unified dispatcher in app.js
+    // Expose them for that purpose
+  };
+  G.paletteStart = paletteStart;
+  G.elementStart = elementStart;
+  G.deselect = deselect;
+  G.pointerMove = pointerMove;
+  G.pointerUp = pointerUp;
 })();

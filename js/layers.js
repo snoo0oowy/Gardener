@@ -46,7 +46,6 @@
     item.addEventListener('click', function(e) {
       e.stopPropagation();
       state.selectedId = elData.id;
-      emit('stateChange');
       emit('selectionChange');
     });
 
@@ -92,6 +91,6 @@
     }
   }
 
-  on('stateChange', renderTree);
+  on('canvasChange', renderTree);
   on('selectionChange', updateSelectionInTree);
 })();

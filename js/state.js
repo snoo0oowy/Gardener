@@ -154,6 +154,27 @@ function removeElement(id, list) {
   return false;
 }
 
+function getElementBounds(id) {
+  var el = getElementById(id);
+  if (!el) return null;
+  var parent = findParent(id);
+  if (!parent) return { x: el.x, y: el.y, w: el.w, h: el.h };
+  var pp = getAbsolutePosition(parent.id);
+  return { x: pp.x, y: pp.y, w: parent.w, h: parent.h };
+}
+
+function getAbsolutePosition(id, list) {
+  list = list || state.elements;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id) return { x: list[i].x, y: list[i].y };
+    if (list[i].children) {
+      var found = getAbsolutePosition(id, list[i].children);
+      if (found) return { x: list[i].x + found.x, y: list[i].y + found.y };
+    }
+  }
+  return null;
+}
+
 window.Gardener.randomMorandiColor = randomMorandiColor;
 window.Gardener.state = state;
 window.Gardener.generateId = generateId;
@@ -162,5 +183,7 @@ window.Gardener.deepClone = deepClone;
 window.Gardener.getElementById = getElementById;
 window.Gardener.findParent = findParent;
 window.Gardener.removeElement = removeElement;
+window.Gardener.getElementBounds = getElementBounds;
+window.Gardener.getAbsolutePosition = getAbsolutePosition;
 window.Gardener.on = on;
 window.Gardener.emit = emit;

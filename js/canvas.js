@@ -23,6 +23,20 @@
     updateHandlesOverlay();
   }
 
+  function updateSelectionVisuals() {
+    var all = canvasEl.querySelectorAll('.canvas-element');
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].dataset.id === state.selectedId) {
+        all[i].classList.add('selected');
+        all[i].style.zIndex = '1';
+      } else {
+        all[i].classList.remove('selected');
+        all[i].style.zIndex = '';
+      }
+    }
+    updateHandlesOverlay();
+  }
+
   function updateHandlesOverlay() {
     var overlay = document.getElementById('handles-overlay');
     if (!overlay) return;
@@ -218,10 +232,11 @@
     }
   }
 
-  on('stateChange', renderCanvas);
-  on('selectionChange', updateHandlesOverlay);
+  on('canvasChange', renderCanvas);
+  on('selectionChange', updateSelectionVisuals);
 
   G.canvasEl = canvasEl;
   G.renderCanvas = renderCanvas;
   G.renderElements = renderElements;
+  G.updateHandlesOverlay = updateHandlesOverlay;
 })();

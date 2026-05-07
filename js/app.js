@@ -3,7 +3,6 @@
   var G = window.Gardener;
   var state = G.state;
   var renderCanvas = G.renderCanvas;
-  var initDrag = G.initDrag;
   var initSelect = G.initSelect;
   var undo = G.undo;
   var redo = G.redo;
@@ -11,8 +10,8 @@
 
   function init() {
     initCanvasPreset();
-    initDrag();
     initSelect();
+    initEvents();
     initKeyboard();
     initButtons();
     state._currentDevice = 'iphone17';
@@ -20,6 +19,40 @@
     initPresetElements('iphone17');
     renderCanvas();
     console.log('[Gardener] Ready');
+  }
+
+  // Unified event dispatcher — single mousedown/mousemove/mouseup on document
+  function initEvents() {
+    document.addEventListener('mousedown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Priority 1: Slider thumb (highest — must not trigger element move)
+      if (G.sliderStart(e)) return;
+
+      // Priority 2: Resize handle
+      if (G.resizeStart(e)) return;
+
+      // Priority 3: Palette item drag
+      if (G.paletteStart(e)) return;
+
+      // Priority 4: Canvas element — start move
+      if (G.elementStart(e)) return;
+
+      // Priority 5: Click on canvas background — deselect
+      G.deselect(e);
+    }, true);
+
+    document.addEventListener('mousemove', function(e) {
+      G.resizeMove(e);
+      G.pointerMove(e);
+      G.sliderMove(e);
+    });
+
+    document.addEventListener('mouseup', function(e) {
+      G.resizeEnd(e);
+      G.pointerUp(e);
+      G.sliderEnd(e);
+    });
   }
 
   function applyDevice(key) {
@@ -93,6 +126,7 @@
       state.canvas.height = customH || 844;
     }
     renderCanvas();
+    G.emit('canvasChange');
     G.emit('selectionChange');
   }
 

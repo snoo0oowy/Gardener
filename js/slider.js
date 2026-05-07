@@ -8,27 +8,28 @@
 
   var sliderDrag = null;
 
-  document.addEventListener('mousedown', function(e) {
+  // Called by unified dispatcher in app.js
+  function sliderStart(e) {
     var thumbEl = e.target.closest('.slider-thumb');
-    if (!thumbEl) return;
+    if (!thumbEl) return false;
 
     var elNode = e.target.closest('.canvas-element');
-    if (!elNode) return;
+    if (!elNode) return false;
     var id = elNode.dataset.id;
 
     if (id !== state.selectedId) {
       state.selectedId = id;
-      emit('stateChange');
-      return;
+      emit('selectionChange');
+      return true;
     }
 
     var el = getElementById(id);
-    if (!el || el.type !== 'slider') return;
+    if (!el || el.type !== 'slider') return false;
 
     e.preventDefault();
 
     var trackBg = elNode.querySelector('.slider-track-bg');
-    if (!trackBg) return;
+    if (!trackBg) return false;
     var trackRect = trackBg.getBoundingClientRect();
 
     sliderDrag = {
@@ -36,9 +37,10 @@
       trackLeft: trackRect.left,
       trackWidth: trackRect.width,
     };
-  }, true);
+    return true;
+  }
 
-  document.addEventListener('mousemove', function(e) {
+  function sliderMove(e) {
     if (!sliderDrag) return;
     var el = getElementById(sliderDrag.id);
     if (!el) return;
@@ -50,12 +52,32 @@
       : 0;
     pct = Math.max(0, Math.min(1, pct));
     el.value = Math.round(min + pct * (max - min));
-    emit('stateChange');
-  });
 
-  document.addEventListener('mouseup', function() {
+    // Direct DOM update instead of full re-render
+    var canvasEl = G.canvasEl;
+    var node = canvasEl.querySelector('[data-id="' + sliderDrag.id + '"]');
+    if (node) {
+      var trackBg = node.querySelector('.slider-track-bg');
+      if (trackBg) {
+        var fill = trackBg.querySelector('.slider-fill');
+        var thumb = trackBg.querySelector('.slider-thumb');
+        var valPct = max > min ? ((el.value - min) / (max - min)) * 100 : 0;
+        valPct = Math.max(0, Math.min(100, valPct));
+        if (fill) fill.style.width = valPct + '%';
+        if (thumb) thumb.style.left = valPct + '%';
+      }
+    }
+    emit('selectionChange');
+  }
+
+  function sliderEnd() {
     if (!sliderDrag) return;
     saveState();
     sliderDrag = null;
-  });
+    emit('canvasChange');
+  }
+
+  G.sliderStart = sliderStart;
+  G.sliderMove = sliderMove;
+  G.sliderEnd = sliderEnd;
 })();

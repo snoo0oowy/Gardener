@@ -35,8 +35,15 @@
     return targets;
   }
 
-  function snapPosition(elementId, proposedX, proposedY, w, h) {
-    var targets = getSnapTargets(elementId);
+  function getNestedSnapTargets(parentBounds) {
+    return [
+      { x: 0 }, { x: parentBounds.w }, { x: parentBounds.w / 2 },
+      { y: 0 }, { y: parentBounds.h }, { y: parentBounds.h / 2 }
+    ];
+  }
+
+  function snapPosition(elementId, proposedX, proposedY, w, h, parentBounds) {
+    var targets = parentBounds ? getNestedSnapTargets(parentBounds) : getSnapTargets(elementId);
     var snappedX = proposedX;
     var snappedY = proposedY;
     var showGuideV = false;
@@ -99,15 +106,18 @@
       }
     }
 
+    var guideOffsetX = parentBounds ? parentBounds.x : 0;
+    var guideOffsetY = parentBounds ? parentBounds.y : 0;
+
     if (showGuideV) {
-      guideV.style.left = guideVPos + 'px';
+      guideV.style.left = (guideVPos + guideOffsetX) + 'px';
       guideV.style.display = 'block';
     } else {
       guideV.style.display = 'none';
     }
 
     if (showGuideH) {
-      guideH.style.top = guideHPos + 'px';
+      guideH.style.top = (guideHPos + guideOffsetY) + 'px';
       guideH.style.display = 'block';
     } else {
       guideH.style.display = 'none';
@@ -116,8 +126,8 @@
     return { x: Math.round(snappedX), y: Math.round(snappedY) };
   }
 
-  function snapResize(elementId, handle, x, y, w, h) {
-    var targets = getSnapTargets(elementId);
+  function snapResize(elementId, handle, x, y, w, h, parentBounds) {
+    var targets = parentBounds ? getNestedSnapTargets(parentBounds) : getSnapTargets(elementId);
     var snappedX = x, snappedY = y, snappedW = w, snappedH = h;
     var showGuideV = false, showGuideH = false;
     var guideVPos = 0, guideHPos = 0;
@@ -162,15 +172,18 @@
       }
     }
 
+    var guideOffsetX = parentBounds ? parentBounds.x : 0;
+    var guideOffsetY = parentBounds ? parentBounds.y : 0;
+
     if (showGuideV) {
-      guideV.style.left = guideVPos + 'px';
+      guideV.style.left = (guideVPos + guideOffsetX) + 'px';
       guideV.style.display = 'block';
     } else {
       guideV.style.display = 'none';
     }
 
     if (showGuideH) {
-      guideH.style.top = guideHPos + 'px';
+      guideH.style.top = (guideHPos + guideOffsetY) + 'px';
       guideH.style.display = 'block';
     } else {
       guideH.style.display = 'none';
