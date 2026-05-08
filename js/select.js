@@ -46,6 +46,9 @@
     { key: 'color', id: 'prop-icon-color', event: 'input' },
     { key: 'onColor', id: 'prop-switch-on-color', event: 'input' },
     { key: 'offColor', id: 'prop-switch-off-color', event: 'input' },
+    { key: 'initials', id: 'prop-avatar-initials', event: 'input', live: true },
+    { key: 'src', id: 'prop-avatar-src', event: 'change' },
+    { key: 'color', id: 'prop-avatar-color', event: 'input' },
   ];
 
   // DOM references — populated in initSelect()
@@ -62,6 +65,8 @@
       'prop-slider-fill', 'prop-slider-thumb', 'prop-slider-track',
       'prop-icon-name', 'prop-icon-color',
       'prop-switch-checked', 'prop-switch-on-color', 'prop-switch-off-color',
+      'prop-avatar-mode', 'prop-avatar-initials', 'prop-avatar-src', 'prop-avatar-color',
+      'avatar-props', 'avatar-initials-row', 'avatar-src-row',
       'props-content', 'props-empty', 'props-title',
       'text-props', 'image-props', 'scrollview-props',
       'slider-props', 'icon-props', 'switch-props',
@@ -103,6 +108,14 @@
     // Special: switch checked (checkbox)
     els['prop-switch-checked'].addEventListener('change', function() {
       updateProp('checked', els['prop-switch-checked'].checked);
+    });
+
+    // Special: avatar mode toggle
+    els['prop-avatar-mode'].addEventListener('change', function() {
+      var mode = els['prop-avatar-mode'].value;
+      els['avatar-initials-row'].style.display = mode === 'initials' ? '' : 'none';
+      els['avatar-src-row'].style.display = mode === 'image' ? '' : 'none';
+      updateProp('mode', mode);
     });
 
     // Delete button
@@ -266,6 +279,8 @@
     else els['icon-props'].classList.add('hidden');
     if (el.type === 'switch') els['switch-props'].classList.remove('hidden');
     else els['switch-props'].classList.add('hidden');
+    if (el.type === 'avatar') els['avatar-props'].classList.remove('hidden');
+    else els['avatar-props'].classList.add('hidden');
 
     if (isTextType) {
       els['prop-text'].value = el.text || '';
@@ -305,6 +320,16 @@
       els['prop-switch-checked'].checked = !!el.checked;
       els['prop-switch-on-color'].value = el.onColor || '#4a90c4';
       els['prop-switch-off-color'].value = el.offColor || '#d0d0d0';
+    }
+
+    if (el.type === 'avatar') {
+      var avatarMode = el.mode || 'initials';
+      els['prop-avatar-mode'].value = avatarMode;
+      els['prop-avatar-initials'].value = el.initials || '';
+      els['prop-avatar-src'].value = el.src || '';
+      els['prop-avatar-color'].value = el.color || '#ffffff';
+      els['avatar-initials-row'].style.display = avatarMode === 'initials' ? '' : 'none';
+      els['avatar-src-row'].style.display = avatarMode === 'image' ? '' : 'none';
     }
   }
 

@@ -30,10 +30,10 @@ function createDefaultElement(type, x, y) {
     name: defaultName,
     x: Math.round(x),
     y: Math.round(y),
-    w: type === 'slider' ? 200 : type === 'icon' ? 40 : type === 'switch' ? 50 : type === 'button' ? 120 : type === 'input' ? 200 : type === 'text' ? 150 : 200,
-    h: type === 'slider' ? 36 : type === 'icon' ? 40 : type === 'switch' ? 28 : type === 'button' ? 44 : type === 'input' ? 40 : type === 'text' ? 30 : 100,
-    bg: type === 'slider' ? 'transparent' : type === 'switch' ? 'transparent' : type === 'button' ? '#4a90c4' : type === 'view' ? randomMorandiColor() : type === 'image' ? '#e8e8ec' : type === 'icon' ? randomMorandiColor() : type === 'text' ? 'transparent' : '#ffffff',
-    radius: type === 'button' ? 8 : type === 'input' ? 6 : 0,
+    w: type === 'slider' ? 200 : type === 'icon' ? 40 : type === 'switch' ? 50 : type === 'avatar' ? 48 : type === 'button' ? 120 : type === 'input' ? 200 : type === 'text' ? 150 : 200,
+    h: type === 'slider' ? 36 : type === 'icon' ? 40 : type === 'switch' ? 28 : type === 'avatar' ? 48 : type === 'button' ? 44 : type === 'input' ? 40 : type === 'text' ? 30 : 100,
+    bg: type === 'slider' ? 'transparent' : type === 'switch' ? 'transparent' : type === 'button' ? '#4a90c4' : type === 'view' ? randomMorandiColor() : type === 'image' ? '#e8e8ec' : type === 'icon' ? randomMorandiColor() : type === 'avatar' ? randomMorandiColor() : type === 'text' ? 'transparent' : '#ffffff',
+    radius: type === 'button' ? 8 : type === 'input' ? 6 : type === 'avatar' ? 999 : 0,
     shadow: '',
     opacity: 1,
     children: [],
@@ -84,6 +84,13 @@ function createDefaultElement(type, x, y) {
     base.checked = false;
     base.onColor = '#4a90c4';
     base.offColor = '#d0d0d0';
+  }
+
+  if (type === 'avatar') {
+    base.mode = 'initials';
+    base.initials = 'AB';
+    base.src = '';
+    base.color = '#ffffff';
   }
 
   return base;

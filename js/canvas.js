@@ -210,6 +210,30 @@
         break;
       }
 
+      case 'avatar': {
+        el.style.borderRadius = '50%';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.overflow = 'hidden';
+        if (elData.mode === 'image' && elData.src) {
+          var avatarImg = document.createElement('img');
+          avatarImg.src = elData.src;
+          avatarImg.style.width = '100%';
+          avatarImg.style.height = '100%';
+          avatarImg.style.objectFit = 'cover';
+          avatarImg.draggable = false;
+          el.appendChild(avatarImg);
+        } else {
+          el.style.fontSize = Math.round(elData.h * 0.4) + 'px';
+          el.style.fontWeight = 'bold';
+          el.style.color = elData.color || '#ffffff';
+          el.style.lineHeight = '1';
+          el.textContent = elData.initials || '';
+        }
+        break;
+      }
+
       case 'view':
       default:
         break;

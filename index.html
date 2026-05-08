@@ -72,6 +72,10 @@
               <div class="palette-icon">&#9681;</div>
               <span>Switch</span>
             </div>
+            <div class="palette-item" data-type="avatar">
+              <div class="palette-icon">A</div>
+              <span>Avatar</span>
+            </div>
           </div>
         </div>
         <div class="panel-section">
@@ -282,6 +286,36 @@
             <div class="prop-field">
               <label>Color</label>
               <input type="color" id="prop-icon-color">
+            </div>
+          </div>
+        </div>
+        <div class="prop-group hidden" id="avatar-props">
+          <label>Avatar</label>
+          <div class="prop-row">
+            <div class="prop-field full">
+              <label>Mode</label>
+              <select id="prop-avatar-mode">
+                <option value="initials">Initials</option>
+                <option value="image">Image</option>
+              </select>
+            </div>
+          </div>
+          <div class="prop-row" id="avatar-initials-row">
+            <div class="prop-field full">
+              <label>Initials</label>
+              <input type="text" id="prop-avatar-initials" placeholder="AB">
+            </div>
+          </div>
+          <div class="prop-row" id="avatar-src-row" style="display:none">
+            <div class="prop-field full">
+              <label>Image URL</label>
+              <input type="text" id="prop-avatar-src" placeholder="https://...">
+            </div>
+          </div>
+          <div class="prop-row">
+            <div class="prop-field">
+              <label>Color</label>
+              <input type="color" id="prop-avatar-color">
             </div>
           </div>
         </div>

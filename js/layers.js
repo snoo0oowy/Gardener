@@ -17,6 +17,7 @@
     slider: '—',
     icon: '◎',
     switch: '◑',
+    avatar: 'A',
   };
 
   function renderTree() {
@@ -76,6 +77,10 @@
     }
     if (el.type === 'icon' && el.iconName) {
       name += ' "' + el.iconName + '"';
+    }
+    if (el.type === 'avatar') {
+      if (el.mode === 'image' && el.src) name += ' [image]';
+      else if (el.initials) name += ' "' + el.initials + '"';
     }
     return name;
   }
